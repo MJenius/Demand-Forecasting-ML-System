@@ -1,0 +1,40 @@
+{
+  "active_version": "v1",
+  "models": {
+    "v1": {
+      "registered_at": "2025-12-23T17:11:12.206469",
+      "status": "active",
+      "metrics": {
+        "MAE": 0.7931514961511892,
+        "RMSE": 1.2965346391661563,
+        "MAPE": 64.64468349811321
+      },
+      "comparison_to_baseline": {
+        "MAE": {
+          "baseline": 1.057,
+          "model": 0.7931514961511892,
+          "improvement_pct": 24.9620155013066
+        },
+        "RMSE": {
+          "baseline": 1.401,
+          "model": 1.2965346391661563,
+          "improvement_pct": 7.456485427112329
+        },
+        "MAPE": {
+          "baseline": 67.14,
+          "model": 64.64468349811321,
+          "improvement_pct": 3.7165869852350175
+        }
+      },
+      "path": "C:\\Users\\mjeni\\OneDrive\\Desktop\\Own Projects\\Demand Forecasting ML System\\registry\\models\\v1"
+    }
+  },
+  "promotion_history": [
+    {
+      "timestamp": "2025-12-23T17:11:12.206469",
+      "from_version": null,
+      "to_version": "v1",
+      "reason": "First model"
+    }
+  ]
+}
