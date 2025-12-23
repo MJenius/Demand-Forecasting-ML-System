@@ -1,0 +1,12 @@
+feature,type
+lag_1,lag
+lag_7,lag
+lag_14,lag
+rolling_mean_7,rolling
+rolling_mean_14,rolling
+rolling_std_7,rolling
+day_of_week,calendar
+week_of_year,calendar
+is_weekend,calendar
+month,calendar
+is_event,calendar
