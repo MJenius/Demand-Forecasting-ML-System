@@ -1,0 +1,21 @@
+{
+  "timestamp": "2025-12-23T17:40:25.189144",
+  "retraining_triggered": true,
+  "reason": "DRIFT detected - retraining candidate model",
+  "drift_status": "DRIFT",
+  "current_model": {
+    "version": "v1",
+    "metrics": {
+      "MAE": 0.7931514961511892,
+      "RMSE": 1.2965346391661563,
+      "MAPE": 64.64468349811321
+    }
+  },
+  "retraining_data": {
+    "window": {
+      "start": "2025-10-24",
+      "end": "2025-12-23"
+    },
+    "predictions_count": 200
+  }
+}

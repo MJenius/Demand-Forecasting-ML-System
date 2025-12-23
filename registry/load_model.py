@@ -36,21 +36,21 @@ def load_active_model() -> dict:
     
     # Load model
     model = joblib.load(model_dir / "lgb_model.pkl")
-    print(f"  ✓ LightGBM model loaded")
+    print(f"  [OK] LightGBM model loaded")
     
     # Load metadata
     with open(model_dir / "metadata.json", 'r') as f:
         metadata = json.load(f)
-    print(f"  ✓ Metadata loaded")
+    print(f"  [OK] Metadata loaded")
     
     # Load features
     with open(model_dir / "features.json", 'r') as f:
         features = json.load(f)
-    print(f"  ✓ Features loaded ({len(features)} features)")
+    print(f"  [OK] Features loaded ({len(features)} features)")
     
     # Load SKU segments
     segments = pd.read_csv(model_dir / "sku_segments.csv")
-    print(f"  ✓ SKU segments loaded ({len(segments):,} SKUs)")
+    print(f"  [OK] SKU segments loaded ({len(segments):,} SKUs)")
     
     # Load metrics
     with open(model_dir / "metrics.json", 'r') as f:

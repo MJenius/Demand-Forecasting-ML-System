@@ -1,0 +1,84 @@
+{
+  "model_version": "candidate",
+  "model_type": "lightgbm",
+  "trained_at": "2025-12-23T17:44:54.128027",
+  "training": {
+    "data_window": {
+      "start": "2016-02-24",
+      "end": "2016-04-17"
+    },
+    "train_samples": 270000,
+    "val_samples": 35000,
+    "best_iteration": 0
+  },
+  "lightgbm_params": {
+    "objective": "regression",
+    "num_leaves": 127,
+    "max_depth": 10,
+    "learning_rate": 0.03,
+    "best_iteration": 463
+  },
+  "features": {
+    "count": 25,
+    "list": [
+      "lag_1",
+      "lag_7",
+      "lag_14",
+      "lag_21",
+      "lag_28",
+      "rolling_mean_7",
+      "rolling_mean_14",
+      "rolling_mean_28",
+      "rolling_std_7",
+      "rolling_std_14",
+      "rolling_std_28",
+      "rolling_max_7",
+      "rolling_min_7",
+      "sell_price",
+      "price_norm",
+      "price_change",
+      "is_price_reduced",
+      "day_of_week",
+      "week_of_year",
+      "is_weekend",
+      "month",
+      "day_of_month",
+      "is_month_end",
+      "is_month_start",
+      "is_event"
+    ],
+    "lags": [
+      "lag_1",
+      "lag_7",
+      "lag_14",
+      "lag_21",
+      "lag_28"
+    ],
+    "rolling": [
+      "rolling_mean_7",
+      "rolling_mean_14",
+      "rolling_mean_28",
+      "rolling_std_7",
+      "rolling_std_14",
+      "rolling_std_28",
+      "rolling_max_7",
+      "rolling_min_7"
+    ],
+    "price": [
+      "sell_price",
+      "price_norm",
+      "price_change",
+      "is_price_reduced"
+    ],
+    "calendar": [
+      "day_of_week",
+      "week_of_year",
+      "is_weekend",
+      "month",
+      "day_of_month",
+      "is_month_end",
+      "is_month_start",
+      "is_event"
+    ]
+  }
+}
