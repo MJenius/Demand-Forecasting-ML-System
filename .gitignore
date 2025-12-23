@@ -1,0 +1,66 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Large data files (regenerated locally)
+data/processed/*.parquet
+data/raw/m5/*.csv
+
+# Trained models (use registry with Git LFS or regenerate)
+registry/**/*.joblib
+registry/**/*.pkl
+registry/**/*.model
+
+# Feature files (large, regenerated)
+features/*.parquet
+
+# Test outputs
+*.log
+test_output/
+.pytest_cache/
+
+# Training artifacts
+training/baseline_results/
+training/sku_segments.csv
+
+# ML outputs
+*.h5
+*.pth
+*.pt
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,29 @@
+{
+  "model_metrics": {
+    "MAE": 1.0102009646599182,
+    "RMSE": 1.3212331154167418,
+    "MAPE": 61.35169872303867
+  },
+  "baseline_metrics": {
+    "MAE": 1.057,
+    "RMSE": 1.401,
+    "MAPE": 67.14
+  },
+  "comparison": {
+    "MAE": {
+      "baseline": 1.057,
+      "model": 1.0102009646599182,
+      "improvement_pct": 4.427534090830822
+    },
+    "RMSE": {
+      "baseline": 1.401,
+      "model": 1.3212331154167418,
+      "improvement_pct": 5.693567778962041
+    },
+    "MAPE": {
+      "baseline": 67.14,
+      "model": 61.35169872303867,
+      "improvement_pct": 8.621241103606387
+    }
+  }
+}
