@@ -1,0 +1,47 @@
+# Prediction Drift Thresholds
+# Compare recent predictions against training reference distribution
+prediction_drift:
+  # Mean shift threshold (%)
+  mean_shift_critical: 20
+  mean_shift_warning: 10
+  
+  # Standard deviation shift threshold (%)
+  std_shift_critical: 30
+  std_shift_warning: 15
+  
+  # Percentile shift threshold (%)
+  percentile_shift_warning: 15
+  
+  # Z-score threshold
+  z_score_threshold: 2.5
+
+# Windows for drift detection
+windows:
+  # Reference period: first N days of predictions (training era proxy)
+  reference_days: 14
+  
+  # Current period: last N days to check for drift
+  current_days: 7
+  
+  # Minimum predictions needed for reliable drift detection
+  min_predictions: 50
+
+# Feature Drift Thresholds (for Step 7C)
+feature_drift:
+  # PSI (Population Stability Index) thresholds
+  psi_critical: 0.25
+  psi_warning: 0.10
+  
+  # Kolmogorov-Smirnov test p-value threshold
+  ks_test_threshold: 0.05
+
+# Retraining Triggers
+retraining:
+  # Trigger retraining if drift detected for consecutive days
+  consecutive_drift_days: 2
+  
+  # Always retrain if this many days have passed (weekly refresh)
+  max_days_without_retrain: 7
+  
+  # Minimum improvement required for new model to be promoted
+  improvement_threshold_mae: 0.02
