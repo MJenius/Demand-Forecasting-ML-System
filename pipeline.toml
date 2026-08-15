@@ -1,0 +1,27 @@
+[data]
+sample_items = 3049
+seed = 42
+max_calendar_gap_days = 60
+minimum_available_memory_gb = 1.6
+series_batch_size = 120
+
+[validation]
+horizons = [7, 28]
+n_folds = 3
+fold_spacing_days = 28
+min_train_days = 365
+
+[models]
+lightgbm_estimators = 300
+lightgbm_learning_rate = 0.05
+promotion_min_improvement = 0.0
+max_bin = 31
+
+[drift]
+warning_psi = 0.10
+critical_psi = 0.25
+bins = 10
+
+[tracking]
+uri = "mlruns"
+experiment = "demand-forecasting"

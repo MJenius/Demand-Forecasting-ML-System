@@ -6,6 +6,7 @@ __pycache__/
 .Python
 env/
 venv/
+.venv/
 ENV/
 build/
 develop-eggs/
@@ -60,6 +61,8 @@ training/sku_segments.csv
 *.h5
 *.pth
 *.pt
+artifacts/
+mlruns/
 
 # OS
 .DS_Store
