@@ -61,7 +61,7 @@ def load_active_model() -> dict:
     # Load metrics
     with open(model_dir / "metrics.json", 'r') as f:
         metrics = json.load(f)
-    print(f"  ✓ Metrics loaded")
+    print(f"  [OK] Metrics loaded")
     
     return {
         'version': active_version,

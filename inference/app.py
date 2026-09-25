@@ -73,11 +73,19 @@ async def startup_event():
     logger.info("Loading data for feature engineering...")
     data_dir = Path(__file__).parent.parent / "data" / "processed"
     
-    # Load sales data
+    # Load sales data (filter to recent history needed for inference lags/rollings: max lag is 28d)
     sales_file = data_dir / "sales_long.parquet"
     if not sales_file.exists():
         raise FileNotFoundError(f"Sales data not found: {sales_file}")
-    sales_data = pd.read_parquet(sales_file)
+    try:
+        import pyarrow.parquet as pq
+        sales_table = pq.read_table(
+            sales_file,
+            filters=[('date', '>=', pd.Timestamp('2016-01-01'))]
+        )
+        sales_data = sales_table.to_pandas()
+    except Exception:
+        sales_data = pd.read_parquet(sales_file)
     logger.info(f"Loaded sales data: {len(sales_data)} rows")
     
     # Load calendar data

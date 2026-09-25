@@ -103,33 +103,33 @@ This repository implements an **Enterprise Demand Forecasting & ML Operations Pl
 
 ## Verified Quantitative Benchmarks
 
-The platform enforces transparent reporting between the **100-item development benchmark** and the **3,049-item full production scale run**. 
+The platform enforces transparent reporting between the **100-item standardized 5-model development benchmark** and the **historical 3,049-item full production scale run**. Neither benchmark is conflated with the other, and each model demonstrates distinct operational trade-offs rather than a single universal winner.
 
-### 1. Unified 100-Item Development Benchmark (`pipeline.dev.toml`)
-*Setup*: 100 sampled items across all 10 stores (1,000 item-store series), full historical period (2011–2016), 3-fold expanding-window cross-validation, evaluated at $h=7$ and $h=28$ days.
+### 1. Standardized 100-Item 5-Model Development Benchmark (`pipeline.dev.toml`)
+*Setup*: 100 sampled items across all 10 stores (1,000 item-store series), full historical period (2011–2016), 3-fold expanding-window cross-validation, evaluated at $h=7$ and $h=28$ days across all 5 benchmarked model architectures.
 
 | Horizon | Model | MAE | RMSE | WAPE | Forecast Bias | MAPE |
 |---:|---|---:|---:|---:|---:|---:|
 | **7 days** | **LightGBM** | **0.9770** | 1.9803 | **0.6092** | -0.2701 | 63.35% |
 | **7 days** | **Hybrid (Segmented)** | 1.0130 | 1.9557 | 0.6321 | -0.1686 | 54.08% |
 | **7 days** | Moving Average (28-day) | 1.0319 | 1.9743 | 0.6433 | -0.1630 | 54.37% |
-| **7 days** | Streaming Ridge | 1.0852 | **1.9447** | 0.6774 | **-0.0235** | **52.32%** |
+| **7 days** | **Streaming Ridge** | 1.0852 | **1.9447** | 0.6774 | **-0.0235** | **52.32%** |
 | **7 days** | Seasonal Naive | 1.2927 | 2.5276 | 0.8079 | +0.0529 | 84.75% |
 | **28 days** | **LightGBM** | **1.0410** | 2.0692 | **0.6474** | -0.2660 | 65.74% |
-| **28 days** | **Hybrid (Segmented)** | 1.0771 | **2.0448** | 0.6712 | -0.1577 | 56.75% |
+| **28 days** | **Hybrid (Segmented)** | 1.0771 | 2.0448 | 0.6712 | -0.1577 | 56.75% |
 | **28 days** | Moving Average (28-day) | 1.1156 | 2.2097 | 0.6947 | -0.1616 | 57.89% |
-| **28 days** | Streaming Ridge | 1.1968 | 2.1762 | 0.7463 | **+0.0134** | **52.89%** |
+| **28 days** | **Streaming Ridge** | 1.1968 | 2.1762 | 0.7463 | **+0.0134** | **52.89%** |
 | **28 days** | Seasonal Naive | 1.3660 | 2.6913 | 0.8535 | +0.0595 | 84.14% |
 
-**Key Takeaways**:
-- **LightGBM** achieved the lowest point MAE and WAPE across both 7-day and 28-day horizons.
-- **Segmented Hybrid Routing** achieved superior balance: reducing the MAE over the moving average baseline while protecting RMSE (lowest RMSE at 28 days) and substantially improving Forecast Bias over monolithic GBDT.
-- **Streaming Ridge** exhibited near-zero forecast bias ($-0.023$ and $+0.013$), making it an ideal linear anchor.
+**Empirical Trade-off Analysis**:
+- **LightGBM** achieves the lowest point prediction error across both horizons (**MAE 0.9770** at 7d, **1.0410** at 28d; **WAPE 0.6092** and **0.6474**), making it the strongest candidate when minimizing magnitude error. However, it exhibits higher negative forecast bias (-0.2701).
+- **Streaming Ridge** achieves the best variance and bias control (**RMSE 1.9447** at 7d; **Forecast Bias -0.0235** at 7d and **+0.0134** at 28d; **MAPE 52.32%** and **52.89%**), avoiding systematic under/over-forecasting.
+- **Segmented Hybrid Routing** acts as an intermediary trade-off: it improves upon simple baseline MAE while dampening GBDT bias (-0.1686 vs -0.2701 at 7d), demonstrating how routing high-velocity SKUs to GBDT and intermittent SKUs to linear/statistical baselines balances error and bias.
 
 ---
 
-### 2. Full-Data 3,049-Item Scale Benchmark (`pipeline.toml`)
-*Setup*: All 3,049 items, 10 stores, 30,490 series, 58,327,370 historical rows, executed using `streaming_pipeline.py` with float32 row-group streaming under 2 GB RAM.
+### 2. Historical Full-Data 3,049-Item Scale Benchmark (`pipeline.toml`)
+*Setup*: All 3,049 items, 10 stores, 30,490 series, 58,327,370 historical rows, executed using `streaming_pipeline.py` with float32 row-group streaming under 2 GB RAM. *(Note: Evaluates monolithic full-scale models; does not include the 100-item segmented routing).*
 
 | Horizon | Model | MAE | RMSE | MAPE |
 |---:|---|---:|---:|---:|
