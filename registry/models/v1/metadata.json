@@ -86,5 +86,6 @@
     "max_depth": 10,
     "learning_rate": 0.03,
     "best_iteration": 463
-  }
+  },
+  "lineage_id": "e24f4ead372107f10e48a04560bd8d59b5e4f135e7ca1c3dec137a8e67ddb5af"
 }

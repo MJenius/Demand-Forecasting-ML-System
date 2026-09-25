@@ -1,0 +1,90 @@
+{
+  "schema_version": "1.0.0",
+  "created_at": "2026-09-25T14:27:12.860884+00:00",
+  "git": {
+    "commit": "7470fa2c7f149919f83f2db59e7606a91bce385a",
+    "dirty": false
+  },
+  "dataset": {
+    "source": "M5 Forecasting Accuracy",
+    "note": "baseline_v1"
+  },
+  "features": {
+    "count": 25,
+    "feature_names": [
+      "day_of_month",
+      "day_of_week",
+      "is_event",
+      "is_month_end",
+      "is_month_start",
+      "is_price_reduced",
+      "is_weekend",
+      "lag_1",
+      "lag_14",
+      "lag_21",
+      "lag_28",
+      "lag_7",
+      "month",
+      "price_change",
+      "price_norm",
+      "rolling_max_7",
+      "rolling_mean_14",
+      "rolling_mean_28",
+      "rolling_mean_7",
+      "rolling_min_7",
+      "rolling_std_14",
+      "rolling_std_28",
+      "rolling_std_7",
+      "sell_price",
+      "week_of_year"
+    ],
+    "features_hash": "2f2099e5b64e5f7deb8a9cb990390ffafe560abcfa567eb05fd585673561e0e5"
+  },
+  "model": {
+    "type": "LightGBM + 7-Day MA (Segmented)",
+    "version": "v1",
+    "parameters": {
+      "objective": "regression",
+      "num_leaves": 127,
+      "max_depth": 10,
+      "learning_rate": 0.03,
+      "best_iteration": 463
+    },
+    "binary_sha256": "46a3e3575557d15fa5cc66ddf337aa6945d7395a5b9a4c4c6a9608effb4e38b4"
+  },
+  "validation": {
+    "config": {
+      "training_rows": 1685190
+    },
+    "metrics": {
+      "model_metrics": {
+        "MAE": 0.7931514961511892,
+        "RMSE": 1.2965346391661563,
+        "MAPE": 64.64468349811321
+      },
+      "baseline_metrics": {
+        "MAE": 1.057,
+        "RMSE": 1.401,
+        "MAPE": 67.14
+      },
+      "comparison": {
+        "MAE": {
+          "baseline": 1.057,
+          "model": 0.7931514961511892,
+          "improvement_pct": 24.9620155013066
+        },
+        "RMSE": {
+          "baseline": 1.401,
+          "model": 1.2965346391661563,
+          "improvement_pct": 7.456485427112329
+        },
+        "MAPE": {
+          "baseline": 67.14,
+          "model": 64.64468349811321,
+          "improvement_pct": 3.7165869852350175
+        }
+      }
+    }
+  },
+  "lineage_id": "e24f4ead372107f10e48a04560bd8d59b5e4f135e7ca1c3dec137a8e67ddb5af"
+}

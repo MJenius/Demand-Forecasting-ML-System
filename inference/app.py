@@ -176,7 +176,7 @@ async def predict(request: PredictionRequest):
         
         logger.info(f"Prediction: {prediction:.4f} (model: {model_used})")
         
-        lineage_id = model_bundle.get('metadata', {}).get('lineage_id', 'unknown')
+        lineage_id = model_bundle.get('lineage_id') or model_bundle.get('metadata', {}).get('lineage_id', 'unknown')
 
         return PredictionResponse(
             item_id=request.item_id,

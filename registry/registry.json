@@ -26,7 +26,8 @@
           "improvement_pct": 3.7165869852350175
         }
       },
-      "path": "C:\\Users\\mjeni\\OneDrive\\Desktop\\Own Projects\\Demand Forecasting ML System\\registry\\models\\v1"
+      "path": "C:\\Users\\mjeni\\OneDrive\\Desktop\\Own Projects\\Demand Forecasting ML System\\registry\\models\\v1",
+      "lineage_id": "e24f4ead372107f10e48a04560bd8d59b5e4f135e7ca1c3dec137a8e67ddb5af"
     },
     "v2": {
       "registered_at": "2026-09-25T14:02:24.223042+00:00",

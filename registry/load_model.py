@@ -62,6 +62,19 @@ def load_active_model() -> dict:
     with open(model_dir / "metrics.json", 'r') as f:
         metrics = json.load(f)
     print(f"  [OK] Metrics loaded")
+
+    # Load lineage manifest if present
+    lineage_id = metadata.get("lineage_id")
+    lineage_file = model_dir / "lineage.json"
+    if lineage_file.exists():
+        try:
+            lineage_data = json.loads(lineage_file.read_text(encoding="utf-8"))
+            lineage_id = lineage_data.get("lineage_id", lineage_id)
+        except Exception:
+            pass
+    if not lineage_id:
+        lineage_id = "unknown"
+    metadata["lineage_id"] = lineage_id
     
     return {
         'version': active_version,
@@ -69,7 +82,8 @@ def load_active_model() -> dict:
         'metadata': metadata,
         'features': features,
         'segments': segments,
-        'metrics': metrics
+        'metrics': metrics,
+        'lineage_id': lineage_id,
     }
 
 
