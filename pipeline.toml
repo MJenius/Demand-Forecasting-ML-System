@@ -14,7 +14,11 @@ min_train_days = 365
 [models]
 lightgbm_estimators = 300
 lightgbm_learning_rate = 0.05
+volume_threshold = 1.5
 promotion_min_improvement = 0.0
+max_rmse_degradation_pct = 0.0
+max_wape_degradation_pct = 0.0
+max_absolute_bias = 0.20
 max_bin = 31
 
 [drift]
@@ -25,3 +29,4 @@ bins = 10
 [tracking]
 uri = "mlruns"
 experiment = "demand-forecasting"
+

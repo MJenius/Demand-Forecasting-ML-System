@@ -58,10 +58,11 @@ def test_psi_detects_shift_and_handles_constant_values():
 
 
 def test_promotion_rejects_any_inferior_guardrail_metric():
-    current = {"MAE": 2.0, "RMSE": 3.0, "MAPE": 40.0}
-    assert promotion_decision(current, {"MAE": 1.9, "RMSE": 2.9, "MAPE": 39.0})["decision"] == "PROMOTE"
-    assert promotion_decision(current, {"MAE": 1.9, "RMSE": 3.1, "MAPE": 39.0})["decision"] == "REJECT"
-    assert promotion_decision(current, {"MAE": 2.1, "RMSE": 2.9, "MAPE": 39.0})["decision"] == "REJECT"
+    current = {"MAE": 2.0, "RMSE": 3.0, "WAPE": 0.40, "Bias": 0.05}
+    assert promotion_decision(current, {"MAE": 1.9, "RMSE": 2.9, "WAPE": 0.38, "Bias": 0.02})["decision"] == "PROMOTE"
+    assert promotion_decision(current, {"MAE": 1.9, "RMSE": 3.1, "WAPE": 0.38, "Bias": 0.02})["decision"] == "REJECT"
+    assert promotion_decision(current, {"MAE": 2.1, "RMSE": 2.9, "WAPE": 0.38, "Bias": 0.02})["decision"] == "REJECT"
+
 
 
 def test_metrics_are_measured_and_zero_safe():

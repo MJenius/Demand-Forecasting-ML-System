@@ -21,15 +21,20 @@ class PredictionRouter:
             sales_data: Full sales data for 7-Day MA fallback
         """
         self.lgb_model = lgb_model
-        self.sku_segments = sku_segments.copy()
+        self.sku_segments = sku_segments.copy() if sku_segments is not None else pd.DataFrame(columns=["item_id", "store_id", "is_normal_volume"])
         self.sales_data = sales_data.copy()
         
         # Create index for fast segment lookup
         self.segment_dict = {}
-        for _, row in self.sku_segments.iterrows():
-            key = (row['item_id'], row['store_id'])
-            # Convert boolean to segment name
-            self.segment_dict[key] = 'normal_volume' if row['is_normal_volume'] else 'low_volume'
+        if "is_normal_volume" in self.sku_segments.columns:
+            for _, row in self.sku_segments.iterrows():
+                key = (row['item_id'], row['store_id'])
+                self.segment_dict[key] = 'normal_volume' if row['is_normal_volume'] else 'low_volume'
+        elif "mean_sales" in self.sku_segments.columns:
+            for _, row in self.sku_segments.iterrows():
+                key = (row['item_id'], row['store_id'])
+                self.segment_dict[key] = 'normal_volume' if row['mean_sales'] >= 1.5 else 'low_volume'
+
     
     def get_segment(self, item_id: str, store_id: str) -> str:
         """

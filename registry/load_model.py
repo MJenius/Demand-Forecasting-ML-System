@@ -35,8 +35,14 @@ def load_active_model() -> dict:
     print(f"Loading active model: {active_version}")
     
     # Load model
-    model = joblib.load(model_dir / "lgb_model.pkl")
-    print(f"  [OK] LightGBM model loaded")
+    model_file = model_dir / "model.joblib"
+    if not model_file.exists():
+        model_file = model_dir / "lgb_model.pkl"
+    if not model_file.exists():
+        raise FileNotFoundError(f"Model binary not found in {model_dir}")
+    model = joblib.load(model_file)
+    print(f"  [OK] Model loaded from {model_file.name}")
+
     
     # Load metadata
     with open(model_dir / "metadata.json", 'r') as f:

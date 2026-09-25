@@ -1,0 +1,14 @@
+{
+  "version": "v2",
+  "lineage_id": "2dd29949d2a776a4bf62e5d781bb023c5c23e85b1e0f8de2d9d5361b65028117",
+  "model_type": "lightgbm_hybrid",
+  "registered_at": "2026-09-25T14:02:24.223042+00:00",
+  "git_commit": "4c91398e4ae5a8e5aac419fbe32abcd91f8033b9",
+  "metrics": {
+    "MAE": 0.9770426362185761,
+    "RMSE": 1.9802696971582963,
+    "WAPE": 0.6091508328853346,
+    "Bias": -0.27005970990614925,
+    "MAPE": 63.35132036757482
+  }
+}

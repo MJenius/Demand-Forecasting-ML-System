@@ -1,0 +1,80 @@
+{
+  "schema_version": "1.0.0",
+  "created_at": "2026-09-25T14:02:24.197862+00:00",
+  "git": {
+    "commit": "4c91398e4ae5a8e5aac419fbe32abcd91f8033b9",
+    "dirty": true
+  },
+  "dataset": {
+    "source": "M5 Forecasting Accuracy",
+    "archive_sha256": "0349ba38a2efd30d0f5acc6394c1110e140e1a990c650d7b5ca44c5b25dd12f5",
+    "sales_sha256": "f368e66ed1dbecb48b2cc8fc589bf68b3deddbbb36bf5c88b4d6d0a09b9b6724",
+    "sample_seed": 42,
+    "sample_items": 100,
+    "sales_rows_wide": 1000
+  },
+  "features": {
+    "count": 25,
+    "feature_names": [
+      "dow",
+      "expanding_mean",
+      "global_mean",
+      "is_event",
+      "item_mean",
+      "lag_13",
+      "lag_20",
+      "lag_34",
+      "lag_62",
+      "lag_7",
+      "month",
+      "price_change_4w",
+      "rolling_mean_14",
+      "rolling_mean_28",
+      "rolling_mean_56",
+      "rolling_mean_7",
+      "rolling_std_14",
+      "rolling_std_28",
+      "rolling_std_56",
+      "rolling_std_7",
+      "sell_price",
+      "snap",
+      "store_mean",
+      "year_cos",
+      "year_sin"
+    ],
+    "features_hash": "6497708479ceecd518b0c54a15bc868d7fe56dea3020d0f8a8d4d4ce2a17ebf7"
+  },
+  "model": {
+    "type": "lightgbm_hybrid",
+    "version": "v2",
+    "parameters": {
+      "lightgbm_estimators": 300,
+      "lightgbm_learning_rate": 0.05,
+      "volume_threshold": 1.5,
+      "promotion_min_improvement": 0.0,
+      "max_rmse_degradation_pct": 0.0,
+      "max_wape_degradation_pct": 0.0,
+      "max_absolute_bias": 0.2
+    },
+    "binary_sha256": "c8e18b9944f0028836242d1ecf4122530bcdb7a572f24d901e9261e016b1fa9e"
+  },
+  "validation": {
+    "config": {
+      "horizons": [
+        7,
+        28
+      ],
+      "n_folds": 3,
+      "fold_spacing_days": 28,
+      "min_train_days": 365
+    },
+    "metrics": {
+      "MAE": 0.9770426362185761,
+      "RMSE": 1.9802696971582963,
+      "WAPE": 0.6091508328853346,
+      "Bias": -0.27005970990614925,
+      "MAPE": 63.35132036757482
+    }
+  },
+  "lineage_id": "2dd29949d2a776a4bf62e5d781bb023c5c23e85b1e0f8de2d9d5361b65028117"
+}

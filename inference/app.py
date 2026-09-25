@@ -46,6 +46,8 @@ class PredictionResponse(BaseModel):
     prediction: float
     model_used: str
     model_version: str
+    lineage_id: Optional[str] = "unknown"
+
 
 
 app = FastAPI(
@@ -166,14 +168,18 @@ async def predict(request: PredictionRequest):
         
         logger.info(f"Prediction: {prediction:.4f} (model: {model_used})")
         
+        lineage_id = model_bundle.get('metadata', {}).get('lineage_id', 'unknown')
+
         return PredictionResponse(
             item_id=request.item_id,
             store_id=request.store_id,
             date=request.date,
             prediction=prediction,
             model_used=model_used,
-            model_version=model_bundle['version']
+            model_version=model_bundle['version'],
+            lineage_id=lineage_id,
         )
+
     
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

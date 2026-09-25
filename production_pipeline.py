@@ -29,10 +29,15 @@ from sklearn.impute import SimpleImputer
 from sklearn.linear_model import Ridge
 from sklearn.pipeline import make_pipeline
 
+from src.evaluation.metrics import evaluate_forecasts
+from src.registry.promotion_gate import evaluate_promotion
+from src.registry.manager import ModelRegistry
+
 ROOT = Path(__file__).resolve().parent
 LOG = logging.getLogger("demand_pipeline")
 ID_COLS = ["id", "item_id", "dept_id", "cat_id", "store_id", "state_id"]
 FEATURE_EXCLUDE = {"date", "item_id", "store_id", "target"}
+
 
 
 def setup_logging(log_path: Path) -> None:
@@ -241,15 +246,7 @@ def feature_columns(df: pd.DataFrame) -> list[str]:
 
 
 def metrics(y_true, y_pred) -> dict[str, float]:
-    actual = np.asarray(y_true, dtype=float)
-    predicted = np.clip(np.asarray(y_pred, dtype=float), 0, None)
-    error = actual - predicted
-    nonzero = actual != 0
-    return {
-        "MAE": float(np.mean(np.abs(error))),
-        "RMSE": float(np.sqrt(np.mean(error**2))),
-        "MAPE": float(np.mean(np.abs(error[nonzero] / actual[nonzero])) * 100) if nonzero.any() else float("nan"),
-    }
+    return evaluate_forecasts(y_true, y_pred)
 
 
 def psi(reference, current, bins: int = 10) -> float:
@@ -307,7 +304,7 @@ def baseline_predictions(train: pd.DataFrame, validation: pd.DataFrame, horizon:
     return {name: np.asarray(values) for name, values in output.items()}
 
 
-def evaluate_fold(df: pd.DataFrame, cutoff: pd.Timestamp, horizon: int, config: dict, timings: dict) -> tuple[list[dict], dict, object]:
+def evaluate_fold(df: pd.DataFrame, cutoff: pd.Timestamp, horizon: int, config: dict, timings: dict) -> tuple[list[dict], dict, object, pd.DataFrame]:
     target_date = cutoff + pd.Timedelta(days=horizon)
     train = df[df["date"] <= cutoff].dropna(subset=feature_columns(df))
     validation = df[df["date"] == target_date].dropna(subset=feature_columns(df))
@@ -316,23 +313,40 @@ def evaluate_fold(df: pd.DataFrame, cutoff: pd.Timestamp, horizon: int, config: 
     features = feature_columns(df)
     with benchmark(f"train_h{horizon}_{cutoff.date()}", timings):
         simple, model = fit_models(train, features, config)
+
+    # Compute volume threshold using only train historical data up to cutoff (zero leakage)
+    vol_threshold = config["models"].get("volume_threshold", 1.5)
+    sku_means = train.groupby(["item_id", "store_id"], as_index=False)["target"].mean()
+    sku_means.rename(columns={"target": "mean_sales"}, inplace=True)
+    sku_means["is_normal_volume"] = sku_means["mean_sales"] >= vol_threshold
+
     with benchmark(f"inference_h{horizon}_{cutoff.date()}", timings):
+        baselines = baseline_predictions(train, validation, horizon)
+        lgb_preds = np.clip(model.predict(validation[features]), 0, None)
+        ridge_preds = np.clip(simple.predict(validation[features]), 0, None)
+
+        # Build segmented hybrid forecast
+        merged_val = validation[["item_id", "store_id"]].merge(sku_means, on=["item_id", "store_id"], how="left")
+        is_normal = merged_val["is_normal_volume"].fillna(False).to_numpy()
+        hybrid_preds = np.where(is_normal, lgb_preds, baselines["moving_average"])
+
         predictions = {
-            **baseline_predictions(train, validation, horizon),
-            "ridge": np.clip(simple.predict(validation[features]), 0, None),
-            "lightgbm": np.clip(model.predict(validation[features]), 0, None),
+            **baselines,
+            "ridge": ridge_preds,
+            "lightgbm": lgb_preds,
+            "hybrid_segmented": hybrid_preds,
         }
     rows = []
     for name, predicted in predictions.items():
-        rows.append({"fold_cutoff": str(cutoff.date()), "target_date": str(target_date.date()), "horizon": horizon, "model": name, **metrics(validation["target"], predicted)})
+        m = metrics(validation["target"], predicted)
+        rows.append({"fold_cutoff": str(cutoff.date()), "target_date": str(target_date.date()), "horizon": horizon, "model": name, **m})
     drift = drift_report(train, model, features, config)
-    return rows, drift, model
+    return rows, drift, model, sku_means
 
 
-def promotion_decision(current: dict, candidate: dict, minimum: float = 0.0) -> dict:
-    improvements = {metric: (current[metric] - candidate[metric]) / current[metric] for metric in ["MAE", "RMSE", "MAPE"]}
-    promote = improvements["MAE"] > minimum and improvements["RMSE"] >= 0 and improvements["MAPE"] >= 0
-    return {"decision": "PROMOTE" if promote else "REJECT", "improvement_fraction": improvements}
+def promotion_decision(current: dict, candidate: dict, config: dict | None = None) -> dict:
+    return evaluate_promotion(current, candidate, config)
+
 
 
 def track_run(report: dict, artifacts: Path, config: dict, config_path: Path | None = None) -> None:
@@ -355,8 +369,10 @@ def track_run(report: dict, artifacts: Path, config: dict, config_path: Path | N
             "features": json.dumps({path.stem: json.loads(path.read_text()) for path in (artifacts / "model").glob("features_*.json")}),
         })
         for row in report["comparison"]:
-            for metric in ["MAE", "RMSE", "MAPE"]:
-                mlflow.log_metric(f"{row['model']}_h{row['horizon']}_{metric.lower()}", row[metric])
+            for metric in ["MAE", "RMSE", "WAPE", "Bias", "MAPE"]:
+                if metric in row and not np.isnan(row[metric]):
+                    mlflow.log_metric(f"{row['model']}_h{row['horizon']}_{metric.lower()}", row[metric])
+
         for name in ["pipeline_report.json", "model_comparison.csv", "drift_report.json", "retraining_decision.json", "performance.json", "schema.json"]:
             path = artifacts / name
             if path.exists():
@@ -399,23 +415,25 @@ def run(config_path: Path, resume: bool = False) -> dict:
         all_rows, drifts, final_models, model_history, latest_holdouts = [], [], {}, {}, {}
         max_date = pd.to_datetime(calendar.loc[calendar["d"].isin([c for c in sales if c.startswith("d_")]), "date"]).max()
         with benchmark("feature_engineering_and_validation", timings):
+            latest_sku_segments = None
             for horizon in config["validation"]["horizons"]:
                 featured = build_features(sales, calendar, prices, horizon)
                 for fold in reversed(range(config["validation"]["n_folds"])):
                     cutoff = max_date - pd.Timedelta(days=horizon + fold * config["validation"]["fold_spacing_days"])
-                    rows, drift, model = evaluate_fold(featured, cutoff, horizon, config, timings)
+                    rows, drift, model, sku_means = evaluate_fold(featured, cutoff, horizon, config, timings)
                     all_rows.extend(rows)
                     drifts.append({"cutoff": str(cutoff.date()), "horizon": horizon, **drift})
                     final_models[horizon] = (model, feature_columns(featured))
                     model_history.setdefault(horizon, []).append((cutoff, model))
                     if fold == 0:
+                        latest_sku_segments = sku_means.copy()
                         features = feature_columns(featured)
                         holdout = featured[featured["date"] == cutoff + pd.Timedelta(days=horizon)].dropna(subset=features)
                         latest_holdouts[horizon] = (holdout[features].copy(), holdout["target"].copy())
                 del featured
                 gc.collect()
         comparison = pd.DataFrame(all_rows)
-        summary = comparison.groupby(["model", "horizon"])[["MAE", "RMSE", "MAPE"]].mean().reset_index()
+        summary = comparison.groupby(["model", "horizon"])[["MAE", "RMSE", "WAPE", "Bias", "MAPE"]].mean().reset_index()
         summary.to_csv(artifacts / "model_comparison.csv", index=False)
         atomic_json(artifacts / "drift_report.json", drifts)
         checkpoint["completed"].append("evaluation")
@@ -433,11 +451,35 @@ def run(config_path: Path, resume: bool = False) -> dict:
                 candidate_rows.append(metrics(holdout_y, candidate_model.predict(holdout_x)))
             incumbent = pd.DataFrame(incumbent_rows).mean().to_dict()
             candidate = pd.DataFrame(candidate_rows).mean().to_dict()
-            retraining.update(promotion_decision(incumbent, candidate, config["models"]["promotion_min_improvement"]))
+            promotion_res = promotion_decision(incumbent, candidate, config["models"])
+            retraining.update(promotion_res)
             retraining.update({"incumbent_metrics": incumbent, "candidate_metrics": candidate})
             if retraining["decision"] == "REJECT":
                 final_models = {horizon: (history[-2][1], list(latest_holdouts[horizon][0].columns)) for horizon, history in model_history.items()}
         atomic_json(artifacts / "retraining_decision.json", retraining)
+
+        # Register final primary model into versioned ModelRegistry
+        registry = ModelRegistry()
+        primary_horizon = config["validation"]["horizons"][0]
+        primary_model, primary_features = final_models[primary_horizon]
+        lgb_metrics_summary = summary[(summary["model"] == "lightgbm") & (summary["horizon"] == primary_horizon)]
+        primary_metrics = lgb_metrics_summary[["MAE", "RMSE", "WAPE", "Bias", "MAPE"]].to_dict(orient="records")[0] if not lgb_metrics_summary.empty else {}
+
+        reg_result = registry.register_candidate(
+            model_object=primary_model,
+            features=primary_features,
+            metrics=primary_metrics,
+            dataset_info=source["dataset"],
+            validation_config=config["validation"],
+            hyperparameters=config["models"],
+            git_commit=git_commit(),
+            git_dirty=bool(subprocess.run(["git", "status", "--porcelain"], cwd=ROOT, capture_output=True, text=True, check=False).stdout.strip()),
+            sku_segments=latest_sku_segments,
+            promotion_config=config["models"],
+            model_type="lightgbm_hybrid",
+        )
+        LOG.info("Registered model in ModelRegistry: %s (Promoted: %s, Lineage: %s)", reg_result["registered_version"], reg_result["promoted"], reg_result["lineage_id"])
+
         model_dir = artifacts / "model"
         model_dir.mkdir(exist_ok=True)
         for horizon, (model, features) in final_models.items():
@@ -450,12 +492,15 @@ def run(config_path: Path, resume: bool = False) -> dict:
         report = {
             **source,
             "git_commit": git_commit(),
+            "lineage_id": reg_result["lineage_id"],
+            "registered_version": reg_result["registered_version"],
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "comparison": summary.to_dict(orient="records"),
             "drift": drifts,
             "retraining": retraining,
             "performance": timings,
         }
+
         atomic_json(artifacts / "pipeline_report.json", report)
         track_run(report, artifacts, config, config_path)
         checkpoint["completed"].append("tracking")
