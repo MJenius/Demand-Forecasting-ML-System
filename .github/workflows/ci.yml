@@ -29,4 +29,5 @@ jobs:
 
     - name: Run Test Suite
       run: |
-        pytest -v -q
+        python -m pytest -v -q
+
